@@ -12,7 +12,7 @@ def msg(msg)
   puts "--> #{msg}"
 end
 
-HARD_LIMIT = 2
+HARD_LIMIT = 20 # Readability supports up to 20 links per email
 USAGE = "Usage: instapaper2readability [options]. Use -h for help."
 MANDATORY = [:smtp_host, :smtp_user, :from, :to, :file_name]
 
