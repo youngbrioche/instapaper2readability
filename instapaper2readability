@@ -83,7 +83,8 @@ end
 
 items = CSV.parse(File.read(options.file_name))[1..-1]
 
-msg "Parsed #{items.size} items, sending in batches of #{HARD_LIMIT}..."
+msg "Parsed #{items.size} items, sending in batches of #{HARD_LIMIT}." \
+    "This can take several minutes depending on the amount of articles."
 
 items.reverse.each_slice(HARD_LIMIT) do |batch|
   mail = Mail.new do
@@ -93,7 +94,6 @@ items.reverse.each_slice(HARD_LIMIT) do |batch|
     body batch.map { |item| item[0] }.join(" ")
   end
   mail.deliver
-  break
 end
 
 msg "Done."
