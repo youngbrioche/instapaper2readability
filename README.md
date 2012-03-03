@@ -1,6 +1,6 @@
 # Instapaper to Readability
 
-Import an Instapaper CSV export to Readability via it's email interface.
+Import an Instapaper CSV export to Readability via it's email interface. Consider this a one-off operation.
 
 ## Usage
 
