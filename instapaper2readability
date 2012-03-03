@@ -1,0 +1,99 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require 'rubygems'
+require 'mail'
+require 'csv'
+require 'ap'
+require 'optparse'
+require 'ostruct'
+
+def msg(msg)
+  puts "--> #{msg}"
+end
+
+HARD_LIMIT = 2
+USAGE = "Usage: instapaper2readability [options]. Use -h for help."
+MANDATORY = [:smtp_host, :smtp_user, :from, :to, :file_name]
+
+options = OpenStruct.new
+
+options.smtp_port = 25
+
+optparse = OptionParser.new do |opts|
+  opts.banner = USAGE
+
+  opts.on("-s", "--smtp-host HOST", "SMTP host") do |host|
+    options.smtp_host = host
+  end
+  
+  opts.on("-p", "--smtp-port [PORT]", "SMTP port (default: 25)") do |port|
+    options.smtp_port = port || 25
+  end
+  
+  opts.on("-u", "--smtp-user USER", "SMTP user") do |user|
+    options.smtp_user = user
+  end
+  
+  opts.on("-f", "--from EMAIL", "Sender email address") do |email|
+    options.from = email
+  end
+  
+  opts.on("-t", "--to EMAIL", "Readability email address to send the articles to") do |email|
+    options.to = email
+  end
+  
+  opts.on("-i", "--input FILE", "Instapaper .csv file") do |file|
+    options.file_name = file
+  end
+  
+  opts
+end
+
+begin                                                                                                                                                                                                             
+  optparse.parse!                                                                                                                                                                                                                                                                                                                                                                                       
+  missing = MANDATORY.select{ |param| options.send(param).nil? }                                           
+  if not missing.empty?                                           
+    puts "Missing options: #{missing.join(', ')}"                                         
+    puts optparse
+    exit 1
+  end                                                                                                                                         
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument                                                
+  puts $!.to_s
+  puts optparse
+  exit 1
+end
+
+print "SMTP password: "
+system "stty -echo"
+options.password = $stdin.gets.chomp
+system "stty echo"
+puts ""
+
+Mail.defaults do
+  delivery_method :smtp, { 
+    :address              => options.smtp_host,
+    :port                 => options.smtp_port,
+    :user_name            => options.smtp_user,
+    :password             => options.password,
+    :authentication       => nil,
+    :enable_starttls_auto => true
+  }
+end
+
+items = CSV.parse(File.read(options.file_name))[1..-1]
+
+msg "Parsed #{items.size} items, sending in batches of #{HARD_LIMIT}..."
+
+items.reverse.each_slice(HARD_LIMIT) do |batch|
+  mail = Mail.new do
+    to options.to
+    from options.from
+    subject "instapaper2readability import"
+    body batch.map { |item| item[0] }.join(" ")
+  end
+  mail.deliver
+  break
+end
+
+msg "Done."
