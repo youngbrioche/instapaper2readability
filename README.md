@@ -13,3 +13,5 @@ The script has several options, running it without any parameters displays a usa
 ## Requirements
 
 Requires Ruby >= 1.9.2. Sorry, no 1.8.
+
+It also needs an SMTP account with credentials.
